@@ -1,0 +1,55 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String          @id @default(uuid())
+  email       String          @unique
+  password    String
+  otpSecret   String?         // Para 2FA
+  documents   Document[]      @relation("DocumentOwners")
+  sharedDocs  SharedDocument[] @relation("SharedUsers")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email], name: "idx_user_email") // Índice para busca rápida por e-mail
+}
+
+model Document {
+  id          String          @id @default(uuid())
+  title       String
+  filePath    String          // Caminho do arquivo no sistema de arquivos ou URL
+  ownerId     String
+  owner       User            @relation(fields: [ownerId], references: [id], name: "DocumentOwners")
+  sharedWith  SharedDocument[] @relation("SharedDocuments")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([title], name: "idx_document_title") // Índice para busca rápida por título
+  @@index([ownerId], name: "idx_document_ownerId") // Índice para filtrar documentos por proprietário
+}
+
+model SharedDocument {
+  id          String          @id @default(uuid())
+  documentId  String
+  document    Document        @relation(fields: [documentId], references: [id], name: "SharedDocuments")
+  userId      String
+  user        User            @relation(fields: [userId], references: [id], name: "SharedUsers")
+  accessLevel String          // Exemplo: 'leitura', 'escrita'
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([documentId], name: "idx_sharedDocument_documentId") // Índice para filtrar compartilhamentos por documento
+  @@index([userId], name: "idx_sharedDocument_userId") // Índice para filtrar compartilhamentos por usuário
+}
