@@ -6,6 +6,9 @@ import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
 import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
+import { MailerModule } from '@nestjs-modules/mailer';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 @Module({
   imports: [
@@ -14,6 +17,20 @@ import { AuthController } from './auth.controller';
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'yourSecretKey',
       signOptions: { expiresIn: '8h' },
+    }),
+    MailerModule.forRoot({
+      transport: {
+        host: process.env.SMTP_HOST,
+        port: process.env.SMTP_PORT,
+        secure: true,
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASSWORD,
+        },
+      },
+      defaults: {
+        from: '"No Reply" <no-reply@example.com>',
+      },
     }),
   ],
   controllers: [AuthController],

@@ -4,9 +4,31 @@ import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './all-exceptions.filter';
 import { PrismaClientExceptionFilter } from 'nestjs-prisma';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  app.use(
+    rateLimit({
+      windowMs: 1 * 60 * 1000,
+      max: 25,
+    }),
+  );
+
+  app.enableCors({
+    origin: '*',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+    allowedHeaders: 'Content-Type, Accept, authorization',
+  });
+
+  app.use(helmet());
+
   app.setGlobalPrefix('api', { exclude: ['/'] });
   app.useGlobalPipes(new ValidationPipe());
 

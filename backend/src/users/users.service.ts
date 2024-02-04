@@ -34,4 +34,13 @@ export class UsersService {
       where: { email },
     });
   }
+
+  async saveOtpSecret(email: string, otpSecret: string): Promise<User | null> {
+    return this.prisma.user.update({
+      where: { email },
+      data: {
+        otpSecret,
+      },
+    });
+  }
 }

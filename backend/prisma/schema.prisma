@@ -28,6 +28,10 @@ model Document {
   id          String          @id @default(uuid())
   title       String
   filePath    String          // Caminho do arquivo no sistema de arquivos ou URL
+  iv          String
+  mimetype    String
+  crc         String?
+  signature   String?
   ownerId     String
   owner       User            @relation(fields: [ownerId], references: [id], name: "DocumentOwners")
   sharedWith  SharedDocument[] @relation("SharedDocuments")
@@ -46,10 +50,12 @@ model SharedDocument {
   userId      String
   user        User            @relation(fields: [userId], references: [id], name: "SharedUsers")
   accessLevel String          // Exemplo: 'leitura', 'escrita'
+  signed      Boolean         @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([documentId], name: "idx_sharedDocument_documentId") // Índice para filtrar compartilhamentos por documento
   @@index([userId], name: "idx_sharedDocument_userId") // Índice para filtrar compartilhamentos por usuário
+  @@unique([userId, documentId], name: "user_document_unique") // Chave única composta
 }
